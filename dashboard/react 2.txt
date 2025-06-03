@@ -1,0 +1,474 @@
+import React, { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { Play, Pause, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Plus, Eye, Users, Target, Calendar, Zap } from 'lucide-react';
+
+const ABTestingDashboard = () => {
+  const [activeTab, setActiveTab] = useState('active');
+  const [showNewTestModal, setShowNewTestModal] = useState(false);
+
+  // Sample A/B test data
+  const activeTests = [
+    {
+      id: 1,
+      name: "Email Subject Line: Personalization vs Generic",
+      type: "Email",
+      status: "Running",
+      progress: 78,
+      startDate: "2025-05-15",
+      endDate: "2025-05-29",
+      hypothesis: "Personalized subject lines will increase open rates by 15%",
+      controlCTR: 18.2,
+      variationCTR: 22.8,
+      sampleSize: 4500,
+      confidence: 92,
+      significance: true
+    },
+    {
+      id: 2,
+      name: "Blog Headlines: Question vs Statement Format",
+      type: "Blog",
+      status: "Running",
+      progress: 45,
+      startDate: "2025-05-20",
+      endDate: "2025-06-03",
+      hypothesis: "Question-based headlines will increase CTR by 20%",
+      controlCTR: 3.1,
+      variationCTR: 3.6,
+      sampleSize: 2800,
+      confidence: 78,
+      significance: false
+    },
+    {
+      id: 3,
+      name: "Video Thumbnails: Face vs Product Focus",
+      type: "Video",
+      status: "Running",
+      progress: 62,
+      startDate: "2025-05-18",
+      endDate: "2025-06-01",
+      hypothesis: "Face-focused thumbnails will increase CTR by 25%",
+      controlCTR: 8.4,
+      variationCTR: 11.2,
+      sampleSize: 1900,
+      confidence: 89,
+      significance: true
+    }
+  ];
+
+  const completedTests = [
+    {
+      id: 4,
+      name: "CTA Button Color: Blue vs Orange",
+      type: "Landing Page",
+      status: "Winner",
+      result: "Orange won by 34%",
+      originalCTR: 2.8,
+      winnerCTR: 3.75,
+      improvement: 33.9,
+      impact: "High",
+      implemented: true
+    },
+    {
+      id: 5,
+      name: "Social Post Format: Carousel vs Single Image",
+      type: "Social Media",
+      status: "Winner",
+      result: "Carousel won by 28%",
+      originalCTR: 1.2,
+      winnerCTR: 1.54,
+      improvement: 28.3,
+      impact: "Medium",
+      implemented: true
+    },
+    {
+      id: 6,
+      name: "Email Send Time: 9AM vs 2PM",
+      type: "Email",
+      status: "No Winner",
+      result: "No significant difference",
+      originalCTR: 19.1,
+      winnerCTR: 19.8,
+      improvement: 3.7,
+      impact: "Low",
+      implemented: false
+    }
+  ];
+
+  const performanceData = [
+    { month: 'Jan', testsRun: 8, winRate: 62.5, avgImprovement: 18.2 },
+    { month: 'Feb', testsRun: 12, winRate: 75.0, avgImprovement: 22.1 },
+    { month: 'Mar', testsRun: 10, winRate: 70.0, avgImprovement: 19.8 },
+    { month: 'Apr', testsRun: 14, winRate: 78.6, avgImprovement: 25.3 },
+    { month: 'May', testsRun: 9, winRate: 66.7, avgImprovement: 28.1 }
+  ];
+
+  const TestCard = ({ test, isActive = true }) => (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">{test.name}</h3>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              test.type === 'Email' ? 'bg-blue-100 text-blue-800' :
+              test.type === 'Blog' ? 'bg-green-100 text-green-800' :
+              test.type === 'Video' ? 'bg-red-100 text-red-800' :
+              test.type === 'Social Media' ? 'bg-purple-100 text-purple-800' :
+              'bg-orange-100 text-orange-800'
+            }`}>
+              {test.type}
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mb-3">{test.hypothesis || test.result}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {isActive ? (
+            <>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                test.status === 'Running' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                <div className="w-2 h-2 bg-current rounded-full mr-1 animate-pulse"></div>
+                {test.status}
+              </span>
+              <button className="p-1 text-gray-400 hover:text-gray-600">
+                <Pause className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              test.status === 'Winner' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+            }`}>
+              {test.status === 'Winner' ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
+              {test.status}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {isActive ? (
+        <>
+          <div className="mb-4">
+            <div className="flex justify-between text-sm text-gray-600 mb-1">
+              <span>Progress</span>
+              <span>{test.progress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${test.progress}%` }}
+              ></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm text-gray-600">Control CTR</div>
+              <div className="text-lg font-bold text-gray-900">{test.controlCTR}%</div>
+            </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-sm text-blue-600">Variation CTR</div>
+              <div className="text-lg font-bold text-blue-900">{test.variationCTR}%</div>
+              <div className={`text-xs font-medium ${
+                test.variationCTR > test.controlCTR ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {test.variationCTR > test.controlCTR ? '+' : ''}{((test.variationCTR - test.controlCTR) / test.controlCTR * 100).toFixed(1)}%
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600">
+                <Users className="w-4 h-4 inline mr-1" />
+                {test.sampleSize.toLocaleString()}
+              </span>
+              <span className={`font-medium ${test.significance ? 'text-green-600' : 'text-yellow-600'}`}>
+                {test.confidence}% confidence
+              </span>
+            </div>
+            <span className="text-gray-500">
+              {test.startDate} - {test.endDate}
+            </span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">{test.improvement.toFixed(1)}%</div>
+              <div className="text-sm text-gray-600">Improvement</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{test.winnerCTR}%</div>
+              <div className="text-sm text-gray-600">Winner CTR</div>
+            </div>
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${
+                test.impact === 'High' ? 'text-green-600' : 
+                test.impact === 'Medium' ? 'text-yellow-600' : 'text-gray-600'
+              }`}>
+                {test.impact}
+              </div>
+              <div className="text-sm text-gray-600">Impact</div>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">
+              Original: {test.originalCTR}% → Winner: {test.winnerCTR}%
+            </span>
+            {test.implemented ? (
+              <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Implemented
+              </span>
+            ) : (
+              <button className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700">
+                Implement
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const NewTestModal = () => (
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${showNewTestModal ? '' : 'hidden'}`}>
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New A/B Test</h2>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Test Name</label>
+            <input 
+              type="text" 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="e.g., Homepage CTA Button Color Test"
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>Email</option>
+                <option>Blog</option>
+                <option>Landing Page</option>
+                <option>Social Media</option>
+                <option>Video</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Test Duration</label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>7 days</option>
+                <option>14 days</option>
+                <option>21 days</option>
+                <option>30 days</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Hypothesis</label>
+            <textarea 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows="3"
+              placeholder="I believe that [change] will result in [outcome] because [reasoning]"
+            ></textarea>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Success Metric</label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>Click-through Rate</option>
+                <option>Conversion Rate</option>
+                <option>Open Rate</option>
+                <option>Engagement Rate</option>
+                <option>Time on Page</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Expected Improvement</label>
+              <input 
+                type="number" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g., 15"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <button 
+              onClick={() => setShowNewTestModal(false)}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={() => setShowNewTestModal(false)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Create Test
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">A/B Testing Management</h1>
+              <p className="text-gray-600 mt-2">Optimize content performance through systematic testing</p>
+            </div>
+            <button
+              onClick={() => setShowNewTestModal(true)}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Test
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <Play className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Active Tests</p>
+                <p className="text-2xl font-bold text-gray-900">3</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-full">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Tests Completed</p>
+                <p className="text-2xl font-bold text-gray-900">18</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <Target className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Win Rate</p>
+                <p className="text-2xl font-bold text-gray-900">72%</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <TrendingUp className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Avg Improvement</p>
+                <p className="text-2xl font-bold text-gray-900">24.8%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Testing Performance Trends</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={performanceData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="testsRun" stroke="#3B82F6" name="Tests Run" strokeWidth={2} />
+              <Line type="monotone" dataKey="winRate" stroke="#10B981" name="Win Rate %" strokeWidth={2} />
+              <Line type="monotone" dataKey="avgImprovement" stroke="#F59E0B" name="Avg Improvement %" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('active')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'active'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Active Tests ({activeTests.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('completed')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'completed'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Completed Tests ({completedTests.length})
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Test Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {activeTab === 'active' ? (
+            activeTests.map(test => (
+              <TestCard key={test.id} test={test} isActive={true} />
+            ))
+          ) : (
+            completedTests.map(test => (
+              <TestCard key={test.id} test={test} isActive={false} />
+            ))
+          )}
+        </div>
+
+        {/* Insights Section */}
+        <div className="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Testing Insights & Recommendations</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h4 className="font-medium text-green-900 mb-2">🏆 Top Performer</h4>
+              <p className="text-sm text-green-800">Email personalization tests show consistent 25%+ improvements. Scale this approach to other channels.</p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">📊 Testing Opportunity</h4>
+              <p className="text-sm text-blue-800">Video content has only 2 tests this quarter. Consider testing thumbnail variations and intro lengths.</p>
+            </div>
+            <div className="p-4 bg-yellow-50 rounded-lg">
+              <h4 className="font-medium text-yellow-900 mb-2">⚡ Quick Win</h4>
+              <p className="text-sm text-yellow-800">CTA button color tests show 30%+ improvements. Apply winning colors across all landing pages.</p>
+            </div>
+          </div>
+        </div>
+
+        <NewTestModal />
+      </div>
+    </div>
+  );
+};
+
+export default ABTestingDashboard;
